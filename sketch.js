@@ -96,18 +96,19 @@ var draw = function(){
 function Burst(x,y, base){
   this.x = x;
   this.y = y;
-  this.radius=random(50,100);
+  this.radiusStart=random(50,100);
   this.ang = random(360);
-  this.step=10;
+  this.step=20;
   this.base = base;
   this.start = millis();
-  this.life = 2000;
+  this.life = 500;
 
   this.update = function(){
-    var duration = millis - this.start;
+    var duration = millis() - this.start;
+    console.log(duration);
     this.x+=this.step*cos(this.ang);
     this.y+=this.step*sin(this.ang);
-//    this.radius =  map(duration,0,this.life,this.radiusStart,0);
+    this.radius =  map(duration,0,this.life,this.radiusStart,0);
 
     this.radius-=1;
 
