@@ -110,7 +110,7 @@ function Burst(x,y, base){
   this.y = y;
   this.radiusStart=random(30,80);
   this.ang = random(360);
-  this.step=25;
+  this.step=20;
   this.base = base;
   this.start = millis();
   this.life = 1500;
