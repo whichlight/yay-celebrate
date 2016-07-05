@@ -108,7 +108,7 @@ var noteScale = ["D3","E3", "F3", "G3", "A4", "B4", "C4","D4","E4", "F4", "G4", 
 function Burst(x,y, base){
   this.x = x;
   this.y = y;
-  this.radiusStart=random(30,80);
+  this.radiusStart=random(30,60);
   this.ang = random(360);
   this.step=20;
   this.base = base;
