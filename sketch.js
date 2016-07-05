@@ -3,6 +3,7 @@ var w;
 var bcol;
 var bval = 1;
 var bhue = 0;
+var synth;
 
 var notouch = true;
 
@@ -13,6 +14,8 @@ var setup = function(){
   colorMode(HSB, 360,1,1)
   createCanvas(windowWidth, windowHeight);
   angleMode(DEGREES);
+
+  createSynth();
 
   w = windowWidth;
   h = windowHeight;
@@ -28,6 +31,7 @@ var setup = function(){
   updateColor(random(360));
 
   makeBurst(random(w),random(h));
+
 }
 
 function windowResized() {
@@ -37,7 +41,6 @@ function windowResized() {
 function pdefault(e){
   e.preventDefault()
 }
-
 
 var touchStarted= function(){
 //  clicked(touchX,touchY);
@@ -49,6 +52,9 @@ var touchMoved= function(){
 
 var touchEnded= function(){
   clicked(touchX,touchY);
+}
+
+var createSynth = function(){
 }
 
 var updateColor = function(hue){
@@ -82,8 +88,12 @@ var makeBurst = function(x,y){
 var draw = function(){
   for(var i=0;i<pool.length; i++){
     var p = pool[i];
-    p.update();
+
+    //step length is 50
+    if(millis() - p.updated>50){
+      p.update();
     p.render();
+    }
   }
 
 
@@ -93,24 +103,30 @@ var draw = function(){
 
 }
 
+var noteScale = ["D3","E3", "F3", "G3", "A4", "B4", "C4","D4","E4", "F4", "G4", "A5", "B5", "C5","D5","E5", "F5", "G5", "A6", "B6", "C6","D6","E6", "F6", "G6", "A7", "B7", "C7","D7"];
+
 function Burst(x,y, base){
   this.x = x;
   this.y = y;
-  this.radiusStart=random(50,100);
+  this.radiusStart=random(30,80);
   this.ang = random(360);
-  this.step=20;
+  this.step=25;
   this.base = base;
   this.start = millis();
-  this.life = 500;
+  this.life = 1500;
+  this.updated = millis();
 
   this.update = function(){
     var duration = millis() - this.start;
-    console.log(duration);
     this.x+=this.step*cos(this.ang);
     this.y+=this.step*sin(this.ang);
     this.radius =  map(duration,0,this.life,this.radiusStart,0);
 
-    this.radius-=1;
+    var interval = floor(map(duration,0,this.life,0,noteScale.length-1));
+    if(interval<noteScale.length-1){
+     // synth.triggerAttackRelease(noteScale[interval], 0.1);
+    }
+
 
     if(this.radius<0){
       var index = pool.indexOf(this);
@@ -118,7 +134,7 @@ function Burst(x,y, base){
         pool.splice(index, 1);
       }
     }
-
+    this.updated = millis();
   }
 
   this.render = function(){
