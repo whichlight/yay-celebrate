@@ -92,7 +92,12 @@ var draw = function(){
     //step length is 50
     if(millis() - p.updated>50){
       p.update();
-    p.render();
+      p.render();
+    }
+
+
+    if(millis() - p.updated>25){
+      p.render();
     }
   }
 
