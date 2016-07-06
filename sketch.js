@@ -1,3 +1,4 @@
+'use strict';
 var h;
 var w;
 var bcol;
@@ -7,8 +8,7 @@ var synth;
 
 var notouch = true;
 
-var pool = [];
-
+var bursts = [];
 
 var setup = function(){
   colorMode(HSB, 360,1,1)
@@ -55,6 +55,8 @@ var touchEnded= function(){
 }
 
 var createSynth = function(){
+  synth = new Tone.SimpleSynth();
+  synth.toMaster();
 }
 
 var updateColor = function(hue){
@@ -68,49 +70,105 @@ var clicked = function(x,y){
   makeBurst(x,y);
 
   if(notouch){
-el = document.getElementsByClassName('title')[0];
-el.remove();
+  var el = document.getElementsByClassName('title')[0];
+  el.remove();
   notouch = false;
   }
 }
 
 var makeBurst = function(x,y){
-  num=50;
   updateColor(random(360));
-  var base = random(360);
-  for(var i=0; i<num; i++){
-    var p = new Burst(x, y, base);
-    pool.push(p);
-  }
+  bursts.push(new Burst(x,y,50));
 }
 
 
 var draw = function(){
-  for(var i=0;i<pool.length; i++){
-    var p = pool[i];
 
-    //step length is 50
-    if(millis() - p.updated>50){
-      p.update();
-      p.render();
+  bursts.forEach(function(b){
+    b.update();
+
+    if(b.pool.length ==0 & notouch){
+      makeBurst(random(w),random(h));
     }
 
-
-    if(millis() - p.updated>25){
-      p.render();
+    if(b.pool.length ==0){
+      b.synth.dispose();
+      var index = bursts.indexOf(b);
+      if (index > -1) {
+        bursts.splice(index, 1);
+      }
     }
-  }
-
-
-  if(pool.length ==0 & notouch){
-  makeBurst(random(w),random(h));
-  }
-
+  });
 }
 
-var noteScale = ["D3","E3", "F3", "G3", "A4", "B4", "C4","D4","E4", "F4", "G4", "A5", "B5", "C5","D5","E5", "F5", "G5", "A6", "B6", "C6","D6","E6", "F6", "G6", "A7", "B7", "C7","D7"];
+var noteScale = ["C3","D3","E3", "F3", "G3", "A3", "B3", "C4","D4","E4", "F4", "G4", "A4", "B4", "C5","D5","E5", "F5", "G5", "A5", "B5", "C6","D6","E6", "F6", "G6", "A6", "B6", "C7","D7"];
 
-function Burst(x,y, base){
+function Burst(x,y,num){
+  this.pool = [];
+  var base = random(360);
+
+
+  this.synth = new Tone.SimpleSynth().toMaster();
+  this.playing = false;
+  this.x = x;
+  this.y = y;
+  this.note =0;
+  this.notesplayed = 0;
+
+  for(var i=0; i<num; i++){
+    var p = new Spark(x, y, base);
+    this.pool.push(p);
+  }
+
+
+  this.update = function(){
+
+    var duration = millis() - this.pool[0].start;
+
+    var base = floor(map(this.y, 0,h,12,0));
+
+    var arp = [0,7,3,5,7];
+
+
+    if(!this.playing && this.notesplayed < 4){
+      this.playing=true;
+      var that = this;
+      setTimeout(function(){
+        that.playing = false;
+      }, this.pool[0].life/8);
+      this.synth.triggerAttackRelease(noteScale[base+this.note], 0.1);
+      this.synth.triggerAttackRelease(noteScale[base+this.note+7], 0.1, "+0.1");
+      this.note+=floor(random(1,4));
+      this.notesplayed++;
+    }
+
+
+
+    for(var i=0;i<this.pool.length; i++){
+      var p = this.pool[i];
+
+      //step length is 50
+      if(millis() - p.updated>50){
+        p.update();
+        p.render();
+      }
+
+
+      if(millis() - p.updated>25){
+        p.render();
+      }
+      if(p.radius<0){
+        var index = this.pool.indexOf(p);
+        if (index > -1) {
+          this.pool.splice(index, 1);
+        }
+      }
+    }
+
+  }
+}
+
+function Spark(x,y, base){
   this.x = x;
   this.y = y;
   this.radiusStart=random(30,60);
@@ -127,18 +185,7 @@ function Burst(x,y, base){
     this.y+=this.step*sin(this.ang);
     this.radius =  map(duration,0,this.life,this.radiusStart,0);
 
-    var interval = floor(map(duration,0,this.life,0,noteScale.length-1));
-    if(interval<noteScale.length-1){
-     // synth.triggerAttackRelease(noteScale[interval], 0.1);
-    }
 
-
-    if(this.radius<0){
-      var index = pool.indexOf(this);
-      if (index > -1) {
-        pool.splice(index, 1);
-      }
-    }
     this.updated = millis();
   }
 
