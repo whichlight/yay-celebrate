@@ -155,12 +155,12 @@ function Burst(x,y,num){
 
     var duration = millis() - this.pool[0].start;
 
-    var base = floor(map(this.y, 0,h,12,0));
+    var base = floor(map(this.y, 0,h,15,0));
 
     var arp = [0,7,3,5,7];
 
 
-    if(!this.playing && this.notesplayed < 6){
+    if(!this.playing && this.notesplayed < 4){
       this.playing=true;
       var that = this;
       setTimeout(function(){
@@ -170,10 +170,10 @@ function Burst(x,y,num){
       if(this.notesplayed==0 && !notouch){
         gsynth.triggerAttackRelease(noteScale[base], 0.2);
       }
-      if(this.notesplayed<5){
+      else if(this.notesplayed<3){
         this.synth.triggerAttackRelease(noteScale[base+this.note+7], 0.1);
       }else{
-       // this.synth.triggerAttackRelease(noteScale[base+21], 0.1);
+        this.synth.triggerAttackRelease(noteScale[base+14], 0.1);
       }
     //  this.synth.triggerAttackRelease(noteScale[base+this.note+7], 0.1, "+0.1");
       this.note+=floor(random(1,4));
