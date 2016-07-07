@@ -6,7 +6,7 @@ var bval = 1;
 var bhue = 0;
 
 var synthpool = new SynthPool(10);
-
+var gsynth;
 var notouch = true;
 
 var bursts = [];
@@ -61,8 +61,7 @@ function SynthPool(numSynths){
   this.index = 0;
 
   for(var i=0; i<numSynths; i++){
-    var synth = new Tone.SimpleSynth();
-    synth.toMaster();
+    var synth = new Tone.SimpleSynth().toMaster();
     this.pool.push(synth);
   }
 
@@ -84,12 +83,17 @@ var updateColor = function(hue){
 }
 
 var clicked = function(x,y){
+
   makeBurst(x,y);
 
   if(notouch){
   var el = document.getElementsByClassName('title')[0];
   el.remove();
   notouch = false;
+
+  gsynth = new Tone.SimpleSynth().toMaster();
+  gsynth.triggerAttackRelease("C4", 0.1);
+
   }
 }
 
@@ -163,10 +167,13 @@ function Burst(x,y,num){
         that.playing = false;
       }, this.pool[0].life/20);
 
+      if(this.notesplayed==0 && !notouch){
+        gsynth.triggerAttackRelease(noteScale[base], 0.2);
+      }
       if(this.notesplayed<5){
         this.synth.triggerAttackRelease(noteScale[base+this.note+7], 0.1);
       }else{
-        this.synth.triggerAttackRelease(noteScale[base+21], 0.1);
+       // this.synth.triggerAttackRelease(noteScale[base+21], 0.1);
       }
     //  this.synth.triggerAttackRelease(noteScale[base+this.note+7], 0.1, "+0.1");
       this.note+=floor(random(1,4));
