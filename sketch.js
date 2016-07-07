@@ -4,7 +4,8 @@ var w;
 var bcol;
 var bval = 1;
 var bhue = 0;
-var synth;
+
+var synthpool = new SynthPool(10);
 
 var notouch = true;
 
@@ -15,7 +16,6 @@ var setup = function(){
   createCanvas(windowWidth, windowHeight);
   angleMode(DEGREES);
 
-  createSynth();
 
   w = windowWidth;
   h = windowHeight;
@@ -54,10 +54,27 @@ var touchEnded= function(){
   clicked(touchX,touchY);
 }
 
-var createSynth = function(){
-  synth = new Tone.SimpleSynth();
-  synth.toMaster();
+
+
+function SynthPool(numSynths){
+  this.pool = [];
+  this.index = 0;
+
+  for(var i=0; i<numSynths; i++){
+    var synth = new Tone.SimpleSynth();
+    synth.toMaster();
+    this.pool.push(synth);
+  }
+
+  this.getSynth = function(){
+    var s = this.pool[this.index];
+    this.index++;
+    this.index%=numSynths;
+    return s;
+  }
 }
+
+
 
 var updateColor = function(hue){
   bhue = hue.toFixed(0);
@@ -92,7 +109,7 @@ var draw = function(){
     }
 
     if(b.pool.length ==0){
-      b.synth.dispose();
+     // b.synth.dispose();
       var index = bursts.indexOf(b);
       if (index > -1) {
         bursts.splice(index, 1);
@@ -101,14 +118,23 @@ var draw = function(){
   });
 }
 
-var noteScale = ["C3","D3","E3", "F3", "G3", "A3", "B3", "C4","D4","E4", "F4", "G4", "A4", "B4", "C5","D5","E5", "F5", "G5", "A5", "B5", "C6","D6","E6", "F6", "G6", "A6", "B6", "C7","D7"];
+
+var octaves= [3,4,5,6,7,8,9];
+var letters = ["C","D","E","F","G","A","B"];
+
+var noteScale = [];
+octaves.forEach(function(o){
+  letters.forEach(function(l){
+    noteScale.push(l+o.toString());
+  });
+});
+
+//var noteScale = ["C3","D3","E3", "F3", "G3", "A3", "B3", "C4","D4","E4", "F4", "G4", "A4", "B4", "C5","D5","E5", "F5", "G5", "A5", "B5", "C6","D6","E6", "F6", "G6", "A6", "B6", "C7","D7"];
 
 function Burst(x,y,num){
   this.pool = [];
   var base = random(360);
-
-
-  this.synth = new Tone.SimpleSynth().toMaster();
+  this.synth = synthpool.getSynth();
   this.playing = false;
   this.x = x;
   this.y = y;
@@ -130,14 +156,19 @@ function Burst(x,y,num){
     var arp = [0,7,3,5,7];
 
 
-    if(!this.playing && this.notesplayed < 4){
+    if(!this.playing && this.notesplayed < 6){
       this.playing=true;
       var that = this;
       setTimeout(function(){
         that.playing = false;
-      }, this.pool[0].life/8);
-      this.synth.triggerAttackRelease(noteScale[base+this.note], 0.1);
-      this.synth.triggerAttackRelease(noteScale[base+this.note+7], 0.1, "+0.1");
+      }, this.pool[0].life/20);
+
+      if(this.notesplayed<5){
+        this.synth.triggerAttackRelease(noteScale[base+this.note+7], 0.1);
+      }else{
+        this.synth.triggerAttackRelease(noteScale[base+21], 0.1);
+      }
+    //  this.synth.triggerAttackRelease(noteScale[base+this.note+7], 0.1, "+0.1");
       this.note+=floor(random(1,4));
       this.notesplayed++;
     }
