@@ -71,6 +71,11 @@ function SynthPool(numSynths){
     this.index%=numSynths;
     return s;
   }
+
+  this.play = function(note, duration){
+    var s = this.getSynth();
+    s.triggerAttackRelease(note, duration);
+  }
 }
 
 
@@ -138,7 +143,6 @@ octaves.forEach(function(o){
 function Burst(x,y,num){
   this.pool = [];
   var base = random(360);
-  this.synth = synthpool.getSynth();
   this.playing = false;
   this.x = x;
   this.y = y;
@@ -168,14 +172,13 @@ function Burst(x,y,num){
       }, this.pool[0].life/20);
 
       if(this.notesplayed==0 && !notouch){
-        gsynth.triggerAttackRelease(noteScale[base], 0.2);
+        gsynth.triggerAttackRelease(noteScale[base], 0.3);
       }
       else if(this.notesplayed<3){
-        this.synth.triggerAttackRelease(noteScale[base+this.note+7], 0.1);
+        synthpool.play(noteScale[base+this.note+7], 0.3);
       }else{
-        this.synth.triggerAttackRelease(noteScale[base+14], 0.1);
+        synthpool.play(noteScale[base+14], 0.2);
       }
-    //  this.synth.triggerAttackRelease(noteScale[base+this.note+7], 0.1, "+0.1");
       this.note+=floor(random(1,4));
       this.notesplayed++;
     }
