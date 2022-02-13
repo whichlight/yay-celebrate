@@ -1,25 +1,24 @@
 'use strict';
-var h;
-var w;
-var bcol;
-var bval = 1;
-var bhue = 0;
+let h, w, bcol;
+let bval = 1;
+let bhue = 0;
 
-var synthpool = new SynthPool(10);
-var gsynth;
-var notouch = true;
+let synthpool = new SynthPool(10);
+let gsynth;
+let notouch = true;
+let intro = true; 
 
-var bursts = [];
+let bursts = [];
 
-var setup = function(){
+function setup(){
+  w = windowWidth;
+  h = windowHeight;
   colorMode(HSB, 360,1,1)
   createCanvas(windowWidth, windowHeight);
   angleMode(DEGREES);
 
 
-  w = windowWidth;
-  h = windowHeight;
-
+  
   //disable default touch events for mobile
   var el = document.getElementsByTagName("canvas")[0];
   el.addEventListener("touchstart", pdefault, false);
@@ -27,11 +26,11 @@ var setup = function(){
   el.addEventListener("touchcancel", pdefault, false);
   el.addEventListener("touchleave", pdefault, false);
   el.addEventListener("touchmove", pdefault, false);
-
-  updateColor(random(360));
-
-  makeBurst(random(w),random(h));
-
+  
+  updateColor(300);
+  if(intro){
+    noLoop(); 
+  }
 }
 
 function windowResized() {
@@ -43,17 +42,13 @@ function pdefault(e){
 }
 
 var touchStarted= function(){
-//  clicked(touchX,touchY);
-}
-
-var touchMoved= function(){
-//  clicked(touchX,touchY);
+  return false; 
 }
 
 var touchEnded= function(){
-  clicked(touchX,touchY);
+  clicked(mouseX,mouseY);
+  return false;
 }
-
 
 
 function SynthPool(numSynths){
@@ -61,7 +56,7 @@ function SynthPool(numSynths){
   this.index = 0;
 
   for(var i=0; i<numSynths; i++){
-    var synth = new Tone.SimpleSynth().toMaster();
+    var synth = new Tone.Synth().toDestination();
     this.pool.push(synth);
   }
 
@@ -78,28 +73,32 @@ function SynthPool(numSynths){
   }
 }
 
-
-
-var updateColor = function(hue){
+function updateColor(hue){
   bhue = hue.toFixed(0);
   bval = 1;
-
   background(color(bhue,1,1));
 }
 
-var clicked = function(x,y){
+function clicked(x,y){
 
   makeBurst(x,y);
 
-  if(notouch){
-  var el = document.getElementsByClassName('title')[0];
-  el.remove();
-  notouch = false;
+  if(notouch && !intro){
+    notouch = false;
+    gsynth = new Tone.Synth().toDestination();
+    gsynth.triggerAttackRelease("C4", 0.1);
+    }
 
-  gsynth = new Tone.SimpleSynth().toMaster();
-  gsynth.triggerAttackRelease("C4", 0.1);
-
+  if(intro){
+    intro=false;
+    var el = document.getElementsByClassName('intro')[0];
+    el.remove();
+    Tone.start();
+    loop();
   }
+
+  
+
 }
 
 var makeBurst = function(x,y){
